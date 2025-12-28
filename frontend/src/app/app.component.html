@@ -1,0 +1,186 @@
+<h1>{{ title }}</h1>
+<p>Assessment Submitted by: Nnabugwu Chukwuebuka.</p>
+
+<!-- SUMMARY CARDS -->
+<div *ngIf="loadingSummary">Loading summary...</div>
+
+<div *ngIf="summaryError" style="color: red;">
+  {{ summaryError }}
+</div>
+
+<div *ngIf="summary as s" style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+
+  <div style="border: 1px solid #ccc; padding: 1rem; border-radius: 8px; min-width: 150px;">
+    <h3>Total Accounts</h3>
+    <p>{{ s.total_accounts }}</p>
+  </div>
+
+  <div style="border: 1px solid #ccc; padding: 1rem; border-radius: 8px; min-width: 150px;">
+    <h3>Active Accounts</h3>
+    <p>{{ s.active_accounts }}</p>
+  </div>
+
+  <div style="border: 1px solid #ccc; padding: 1rem; border-radius: 8px; min-width: 150px;">
+    <h3>Inactive Accounts</h3>
+    <p>{{ s.inactive_accounts }}</p>
+  </div>
+
+  <div style="border: 1px solid #ccc; padding: 1rem; border-radius: 8px; min-width: 200px;">
+    <h3>Total Notifications Billed</h3>
+    <p>{{ s.total_notifications_billed | number }}</p>
+  </div>
+
+  <div style="border: 1px solid #ccc; padding: 1rem; border-radius: 8px; min-width: 200px;">
+    <h3>Avg Health Score</h3>
+    <p>{{ s.avg_health_score | number:'1.0-1' }}</p>
+  </div>
+
+  <div style="border: 1px solid #ccc; padding: 1rem; border-radius: 8px; min-width: 200px;">
+    <h3>At Risk Accounts</h3>
+    <p>{{ s.at_risk_accounts }}</p>
+  </div>
+
+  <div style="border: 1px solid #ccc; padding: 1rem; border-radius: 8px; min-width: 200px;">
+    <h3>Churned Accounts</h3>
+    <p>{{ s.churned_accounts }}</p>
+  </div>
+
+</div>
+
+<hr style="margin: 2rem 0;">
+
+<!-- Adding filters and table -->
+<h2>Account Records</h2>
+
+<div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1rem;">
+  <div>
+    <label for="status">Status</label><br>
+    <select id="status" [(ngModel)]="filterStatus">
+      <option value="">All</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+  </div>
+
+  <div>
+    <label for="minHealth">Min Health Score</label><br>
+    <input id="minHealth" type="number" [(ngModel)]="filterMinHealth" min="0" max="100">
+  </div>
+
+  <div>
+    <label for="search">Search by Account Label</label><br>
+    <input id="search" type="text" [(ngModel)]="filterSearch" placeholder="e.g. Atlas">
+  </div>
+
+  <div>
+    <button (click)="applyFilters()">Apply</button>
+    <button (click)="clearFilters()">Clear</button>
+  </div>
+</div>
+
+<div *ngIf="recordsLoading">Loading records...</div>
+<div *ngIf="recordsError" style="color: red;">
+  {{ recordsError }}
+</div>
+
+<table *ngIf="!recordsLoading && records.length > 0"
+       style="border-collapse: collapse; width: 100%; margin-bottom: 1rem;">
+  <thead>
+    <tr style="border-bottom: 1px solid #ddd;">
+      <th style="text-align: left; padding: 0.5rem;">Account</th>
+      <th style="text-align: left; padding: 0.5rem;">Status</th>
+      <th style="text-align: right; padding: 0.5rem;">Health</th>
+      <th style="text-align: right; padding: 0.5rem;">Automations</th>
+      <th style="text-align: right; padding: 0.5rem;">Total Records</th>
+      <th style="text-align: right; padding: 0.5rem;">Messages Processed</th>
+      <th style="text-align: right; padding: 0.5rem;">Notifications Billed</th>
+      <th style="text-align: left; padding: 0.5rem;">Churn Risk</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let r of records" style="border-bottom: 1px solid #f0f0f0;">
+      <td style="padding: 0.5rem;">{{ r.account_label }}</td>
+      <td style="padding: 0.5rem; text-transform: capitalize;">{{ r.subscription_status }}</td>
+      <td style="padding: 0.5rem; text-align: right;">{{ r.health_score }}</td>
+      <td style="padding: 0.5rem; text-align: right;">{{ r.automation_count }}</td>
+      <td style="padding: 0.5rem; text-align: right;">{{ r.total_records | number }}</td>
+      <td style="padding: 0.5rem; text-align: right;">{{ r.messages_processed | number }}</td>
+      <td style="padding: 0.5rem; text-align: right;">{{ r.notifications_billed | number }}</td>
+      <td style="padding: 0.5rem; text-transform: capitalize;">{{ r.churn_risk }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<div *ngIf="!recordsLoading && records.length === 0 && !recordsError">
+  No records found for this filter.
+</div>
+
+<div *ngIf="totalPages > 1" style="margin-bottom: 2rem;">
+  <button (click)="prevPage()" [disabled]="page === 1">Previous</button>
+  <span style="margin: 0 0.5rem;">Page {{ page }} / {{ totalPages }}</span>
+  <button (click)="nextPage()" [disabled]="page === totalPages">Next</button>
+</div>
+
+<hr style="margin: 2rem 0;">
+
+<!-- CHARTS SECTION -->
+<h2>Visual Insights</h2>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem;">
+
+  <!-- Active vs Inactive -->
+  <div style="border: 1px solid #ccc; padding: 1rem; border-radius: 8px;">
+    <h3>Active vs Inactive Accounts</h3>
+    <canvas
+      baseChart
+      type="pie"
+      [data]="{
+        labels: pieLabels,
+        datasets: [{ data: pieData }]
+      }">
+    </canvas>
+  </div>
+
+  <!-- Health by status -->
+  <div style="border: 1px solid #ccc; padding: 1rem; border-radius: 8px;">
+    <h3>Accounts by Health Status</h3>
+    <canvas
+      baseChart
+      type="bar"
+      [data]="{
+        labels: healthBarLabels,
+        datasets: healthBarDatasets
+      }"
+      [options]="healthBarOptions">
+    </canvas>
+  </div>
+
+  <!-- Notifications billed over time -->
+  <div style="border: 1px solid #ccc; padding: 1rem; border-radius: 8px;">
+    <h3>Notifications Billed Over Time</h3>
+    <canvas
+      baseChart
+      type="line"
+      [data]="{
+        labels: notificationsLineLabels,
+        datasets: notificationsLineDatasets
+      }"
+      [options]="notificationsLineOptions">
+    </canvas>
+  </div>
+
+  <!-- Top accounts by notifications billed -->
+  <div style="border: 1px solid #ccc; padding: 1rem; border-radius: 8px;">
+    <h3>Top Accounts by Notifications Billed (current page)</h3>
+    <canvas
+      baseChart
+      type="bar"
+      [data]="{
+        labels: topAccountsBarLabels,
+        datasets: topAccountsBarDatasets
+      }"
+      [options]="topAccountsBarOptions">
+    </canvas>
+  </div>
+
+</div>

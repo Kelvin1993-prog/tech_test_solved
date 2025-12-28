@@ -33,16 +33,25 @@ Produce a working full-stack solution that:
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 tech_test/
 ├── backend/
+
 │ ├── app/
+
 │ │ └── main.py
+
 │ ├── tests/
+
 │ └── requirements.txt
+
 ├── frontend/
+
 │ ├── src/
+
 │ └── angular.json
+
 ├── sample_data.csv
+
 └── README.md
